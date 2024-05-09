@@ -1,5 +1,3 @@
-use zerocopy_derive::{FromBytes, Immutable, KnownLayout};
-
 // ---------------------------------------------
 // -------------- ORIGINAL GAME ----------------
 // ---------------------------------------------
@@ -8,7 +6,7 @@ use zerocopy_derive::{FromBytes, Immutable, KnownLayout};
 // and should not be used in production code
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct PacketHeader {
     pub packet_format: u16,             // 2023
     pub game_year: u8,                  // Game year - last two digits e.g. 23
@@ -25,14 +23,13 @@ pub struct PacketHeader {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug)]
 pub struct PacketMotionData {
     pub header: PacketHeader,                 // Header
     pub car_motion_data: [CarMotionData; 22], // Data for all cars on track
 }
 
 #[repr(C, packed)]
-#[derive(FromBytes, Immutable, KnownLayout)]
 pub struct PacketEventData {
     pub header: PacketHeader,            // Header
     pub event_string_code: [u8; 4],      // Event string code, see below
@@ -40,7 +37,7 @@ pub struct PacketEventData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug)]
 pub struct PacketFinalClassificationData {
     pub header: PacketHeader, // Header
     pub num_cars: u8,         // Number of cars in the final classification
@@ -48,7 +45,7 @@ pub struct PacketFinalClassificationData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug)]
 pub struct PacketParticipantsData {
     pub header: PacketHeader, // Header
     pub num_active_cars: u8, // Number of active cars in the data – should match number of cars on HUD
@@ -56,7 +53,7 @@ pub struct PacketParticipantsData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct TyreStintHistoryData {
     pub end_lap: u8,              // Lap the tyre usage ends on (255 of current tyre)
     pub tyre_actual_compound: u8, // Actual tyres used by this driver
@@ -64,21 +61,21 @@ pub struct TyreStintHistoryData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct PacketCarStatusData {
     pub header: PacketHeader,                 // Header
     pub car_status_data: [CarStatusData; 22], // 22
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct PacketCarDamageData {
     pub header: PacketHeader,                 // Header
     pub car_damage_data: [CarDamageData; 22], // 22
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct PacketCarTelemetryData {
     pub header: PacketHeader,                       // Header
     pub car_telemetry_data: [CarTelemetryData; 22], // 22
@@ -88,7 +85,7 @@ pub struct PacketCarTelemetryData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug)]
 pub struct PacketSessionHistoryData {
     pub header: PacketHeader,
     pub car_idx: u8,
@@ -103,7 +100,7 @@ pub struct PacketSessionHistoryData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug)]
 pub struct PacketSessionData {
     pub header: PacketHeader,
     pub weather: u8, // Weather - 0 = clear, 1 = light cloud, 2 = overcast, 3 = light rain, 4 = heavy rain, 5 = storm
@@ -158,7 +155,7 @@ pub struct PacketSessionData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct CarMotionData {
     pub world_position_x: f32,     // World space X position - metres
     pub world_position_y: f32,     // World space Y position
@@ -181,14 +178,14 @@ pub struct CarMotionData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct MarshalZone {
     pub zone_start: f32, // Fraction (0..1) of way through the lap the marshal zone starts
     pub zone_flag: i8,   // -1 = invalid/unknown, 0 = none, 1 = green, 2 = blue, 3 = yellow
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct WeatherForecastSample {
     pub session_type: u8, // 0 = unknown, 1 = P1, 2 = P2, 3 = P3, 4 = Short P, 5 = Q1, 6 = Q2, 7 = Q3, 8 = Short Q, 9 = OSQ, 10 = R, 11 = R2, 12 = R3, 13 = Time Trial
     pub time_offset: u8,  //Time in minutes the forecast is for
@@ -201,32 +198,32 @@ pub struct WeatherForecastSample {
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct FastestLap {
     pub vehicle_idx: u8,
     pub lap_time: f32,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct Retirement {
     pub vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct TeamMateInPits {
     pub vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct RaceWinner {
     pub vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct Penalty {
     pub penalty_type: u8,
     pub infringement_type: u8,
@@ -238,7 +235,7 @@ pub struct Penalty {
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct SpeedTrap {
     pub vehicle_idx: u8,
     pub speed: f32,
@@ -249,45 +246,44 @@ pub struct SpeedTrap {
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct StartLights {
     pub num_lights: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct DriveThroughPenaltyServed {
     pub vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct StopGoPenaltyServed {
     pub vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct Flashback {
     pub flashback_frame_identifier: u32, // Frame identifier flashed back to
     pub flashback_session_time: f32,     // Session time flashed back to
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct Buttons {
     pub button_status: u32,
 }
 
 #[repr(C, packed)]
-#[derive(Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Clone, Copy)]
 pub struct Overtake {
     pub overtaking_vehicle_idx: u8,
     pub being_overtaken_vehicle_idx: u8,
 }
 
 #[repr(C, packed)]
-#[derive(FromBytes, Immutable, KnownLayout)]
 pub union EventDataDetails {
     pub fastest_lap: FastestLap,
     pub retirement: Retirement,
@@ -304,7 +300,7 @@ pub union EventDataDetails {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct ParticipantData {
     pub ai_controlled: u8,  // Whether the vehicle is AI (1) or Human (0) controlled
     pub driver_id: u8,      // Driver id - see appendix, 255 if network human
@@ -320,7 +316,7 @@ pub struct ParticipantData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct FinalClassificationData {
     pub position: u8,                  // Finishing position
     pub num_laps: u8,                  // Number of laps completed
@@ -339,7 +335,7 @@ pub struct FinalClassificationData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct LapHistoryData {
     pub lap_time_in_ms: u32,      // Lap time in milliseconds
     pub sector1_time_in_ms: u16,  // Sector 1 time in milliseconds
@@ -352,7 +348,7 @@ pub struct LapHistoryData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct CarTelemetryData {
     pub speed: u16,                         // Speed of car in km/h
     pub throttle: f32,                      // 0.0 - 1.0
@@ -373,7 +369,7 @@ pub struct CarTelemetryData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct CarStatusData {
     pub traction_control: u8, // Traction control - 0 = off, 1 = medium, 2 = full
     pub anti_lock_brakes: u8, // 0 (off) - 1 (on)
@@ -403,7 +399,7 @@ pub struct CarStatusData {
 }
 
 #[repr(C, packed)]
-#[derive(Debug, Clone, Copy, FromBytes, Immutable, KnownLayout)]
+#[derive(Debug, Clone, Copy)]
 pub struct CarDamageData {
     pub tyres_wear: [f32; 4],        // Tyre wear (percentage)
     pub tyres_damage: [u8; 4],       // Tyre damage (percentage)
@@ -432,7 +428,7 @@ pub struct CarDamageData {
 // ------------ CUSTOM GAME TYPES --------------
 // ---------------------------------------------
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct SectorsLaps {
     pub sector1: u16,
     pub sector2: u16,
@@ -458,7 +454,7 @@ pub enum PacketIds {
     MotionEx,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum EventCode {
     SessionStarted,
     SessionEnded,
@@ -481,7 +477,7 @@ pub enum EventCode {
     Overtake,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum SessionType {
     P1,
     P2,

@@ -110,7 +110,7 @@ impl ChampionshipService {
 
             let port = self
                 .ports
-                .get()
+                .next()
                 .ok_or(ChampionshipError::NoPortsAvailable)?;
 
             let result = conn

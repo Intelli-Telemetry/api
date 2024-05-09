@@ -34,7 +34,7 @@ impl MachinePorts {
         })
     }
 
-    pub fn get(&self) -> Option<i32> {
+    pub fn next(&self) -> Option<i32> {
         let mut ports = self.ports.lock();
 
         match ports.pop_front() {

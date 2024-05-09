@@ -35,7 +35,7 @@ impl TokenError {
         match self {
             TokenError::InvalidToken => "Invalid token",
             TokenError::MissingToken => "Missing Bearer token",
-            TokenError::TokenCreationError => "Token Creation Error",
+            TokenError::TokenCreationError => "Token Validation Error",
             TokenError::InvalidTokenType => "Invalid token type",
         }
     }

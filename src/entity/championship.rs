@@ -28,11 +28,15 @@ pub struct Championship {
 }
 
 impl Championship {
+    pub fn from_row(row: &Row) -> Arc<Championship> {
+        Arc::new(Championship::from(row))
+    }
+
     pub fn from_rows(rows: &Vec<Row>) -> Vec<Arc<Championship>> {
         let mut championships = Vec::with_capacity(rows.len());
 
         for row in rows {
-            championships.push(Arc::new(Championship::from(row)));
+            championships.push(Championship::from_row(row));
         }
 
         championships

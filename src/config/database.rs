@@ -2,7 +2,7 @@ use std::{ops::DerefMut, str::FromStr};
 
 use deadpool_postgres::{
     tokio_postgres::{Config, NoTls},
-    Pool,
+    Manager, Pool,
 };
 use dotenvy::var;
 use refinery::embed_migrations;
@@ -13,18 +13,18 @@ embed_migrations!("migrations");
 /// Represents the application's database connections, encapsulating both Redis and Postgres pools.
 pub struct Database {
     /// The PostgreSQL connection pool for database operations.
-    pub pg: deadpool_postgres::Pool,
+    pub pg: Pool,
 }
 
 impl Database {
-    /// Initializes and returns a new `Database` instance by setting up connections to both Redis and Postgres databases.
+    /// Initializes and returns a new `Database` instance by setting up connection to Postgres databases.
     ///
-    /// It reads database URLs from the environment, creates connection pools for both databases,
-    /// and performs database migrations for Postgres.
+    /// It reads database URL from the environment, creates connection pools for POstgres,
+    /// and performs database migrations.
     ///
     /// # Panics
     /// This function will panic if:
-    /// - The environment variables `DATABASE_URL` or `REDIS_URL` are not set.
+    /// - The environment variable `DATABASE_URL` is not set.
     /// - It fails to create the connection pools.
     /// - It fails to run database migrations.
     ///
@@ -41,12 +41,8 @@ impl Database {
                 Config::from_str(&var("DATABASE_URL").expect("Environment DATABASE_URL not found"))
                     .unwrap();
 
-            let manager = deadpool_postgres::Manager::new(config, NoTls);
-
-            deadpool_postgres::Pool::builder(manager)
-                .max_size(200)
-                .build()
-                .unwrap()
+            let manager = Manager::new(config, NoTls);
+            Pool::builder(manager).max_size(200).build().unwrap()
         };
 
         Self::migrations(&pg).await;

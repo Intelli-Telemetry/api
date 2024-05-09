@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 pub type UserExtension = Arc<User>;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, FromSql, ToSql)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, FromSql, ToSql)]
 #[postgres(name = "user_provider")]
 pub enum Provider {
     #[postgres(name = "Local")]
@@ -16,7 +16,7 @@ pub enum Provider {
     Google,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, FromSql, ToSql)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, FromSql, ToSql)]
 #[postgres(name = "user_role")]
 pub enum Role {
     #[postgres(name = "Free")]
@@ -44,6 +44,12 @@ pub struct User {
     pub active: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl User {
+    pub fn from_row(row: &Row) -> Arc<Self> {
+        Arc::new(Self::from(row))
+    }
 }
 
 impl From<&Row> for User {

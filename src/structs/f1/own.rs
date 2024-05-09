@@ -1,12 +1,14 @@
+use std::mem;
 use std::sync::Arc;
 
 use ntex::util::Bytes;
 use parking_lot::RwLock;
 use tokio::sync::{broadcast::Receiver, oneshot};
-use tracing::error;
-use zerocopy::{FromBytes, Immutable, KnownLayout};
 
-use crate::services::PacketCaching;
+use crate::{
+    error::{AppResult, F1ServiceError},
+    services::PacketCaching,
+};
 
 use super::game::*;
 
@@ -34,60 +36,59 @@ pub enum F1Data<'a> {
 }
 
 impl<'a> F1Data<'a> {
-    pub fn try_deserialize(packet_id: PacketIds, data: &[u8]) -> Option<F1Data> {
-        match packet_id {
-            PacketIds::Motion => {
-                Self::try_deserialize_packet::<PacketMotionData>(data).map(F1Data::Motion)
-            }
+    pub fn try_cast(data: &[u8]) -> AppResult<(PacketIds, &PacketHeader, F1Data)> {
+        let header = Self::unsafe_cast::<PacketHeader>(data)?;
 
-            PacketIds::Session => {
-                Self::try_deserialize_packet::<PacketSessionData>(data).map(F1Data::Session)
-            }
+        let packet_id = PacketIds::try_from(header.packet_id).unwrap();
+        let packet = match packet_id {
+            PacketIds::Motion => Self::unsafe_cast::<PacketMotionData>(data).map(F1Data::Motion),
 
-            PacketIds::Participants => Self::try_deserialize_packet::<PacketParticipantsData>(data)
-                .map(F1Data::Participants),
+            PacketIds::Session => Self::unsafe_cast::<PacketSessionData>(data).map(F1Data::Session),
+
+            PacketIds::Participants => {
+                Self::unsafe_cast::<PacketParticipantsData>(data).map(F1Data::Participants)
+            }
 
             PacketIds::FinalClassification => {
-                Self::try_deserialize_packet::<PacketFinalClassificationData>(data)
+                Self::unsafe_cast::<PacketFinalClassificationData>(data)
                     .map(F1Data::FinalClassification)
             }
 
             PacketIds::SessionHistory => {
-                Self::try_deserialize_packet::<PacketSessionHistoryData>(data)
-                    .map(F1Data::SessionHistory)
+                Self::unsafe_cast::<PacketSessionHistoryData>(data).map(F1Data::SessionHistory)
             }
 
-            PacketIds::Event => {
-                Self::try_deserialize_packet::<PacketEventData>(data).map(F1Data::Event)
-            }
+            PacketIds::Event => Self::unsafe_cast::<PacketEventData>(data).map(F1Data::Event),
 
             PacketIds::CarDamage => {
-                Self::try_deserialize_packet::<PacketCarDamageData>(data).map(F1Data::CarDamage)
+                Self::unsafe_cast::<PacketCarDamageData>(data).map(F1Data::CarDamage)
             }
 
             PacketIds::CarStatus => {
-                Self::try_deserialize_packet::<PacketCarStatusData>(data).map(F1Data::CarStatus)
+                Self::unsafe_cast::<PacketCarStatusData>(data).map(F1Data::CarStatus)
             }
 
-            PacketIds::CarTelemetry => Self::try_deserialize_packet::<PacketCarTelemetryData>(data)
-                .map(F1Data::CarTelemetry),
+            PacketIds::CarTelemetry => {
+                Self::unsafe_cast::<PacketCarTelemetryData>(data).map(F1Data::CarTelemetry)
+            }
 
-            _ => None,
-        }
-    }
+            _ => Err(F1ServiceError::InvalidPacketType)?,
+        }?;
 
-    pub fn try_deserialize_header(data: &'a [u8]) -> Option<&'a PacketHeader> {
-        Self::try_deserialize_packet::<PacketHeader>(data)
+        Ok((packet_id, header, packet))
     }
 
     #[inline(always)]
-    fn try_deserialize_packet<T: FromBytes + KnownLayout + Immutable>(bytes: &[u8]) -> Option<&T> {
-        match T::ref_from_prefix(bytes) {
-            Some(packet) => Some(packet.0),
-            None => {
-                error!("Failed to deserialize packet");
-                None
-            }
+    fn unsafe_cast<T>(bytes: &[u8]) -> AppResult<&T> {
+        if bytes.len() < mem::size_of::<T>() {
+            return Err(F1ServiceError::CastingError)?;
         }
+
+        let alignment = mem::align_of::<T>();
+        if (bytes.as_ptr() as usize) % alignment != 0 {
+            return Err(F1ServiceError::CastingError)?;
+        }
+
+        Ok(unsafe { &*(bytes.as_ptr() as *const T) })
     }
 }

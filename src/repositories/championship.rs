@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use ahash::AHashSet;
-use deadpool_postgres::tokio_postgres::Row;
 
 use crate::{
     cache::{EntityCache, ServiceCache},
@@ -121,7 +120,15 @@ impl ChampionshipRepository {
             conn.query_opt(&find_championship_stmt, &[&id]).await?
         };
 
-        Ok(self.row_into_championship(row.as_ref()))
+        match row {
+            Some(ref row) => {
+                let championship = Championship::from_row(row);
+                self.cache.championship.set(championship.clone());
+                Ok(Some(championship))
+            }
+
+            None => Ok(None),
+        }
     }
 
     /// Finds a championship by its name.
@@ -153,7 +160,15 @@ impl ChampionshipRepository {
             conn.query_opt(&find_by_name_stmt, &[&name]).await?
         };
 
-        Ok(self.row_into_championship(row.as_ref()))
+        match row {
+            Some(ref row) => {
+                let championship = Championship::from_row(row);
+                self.cache.championship.set(championship.clone());
+                Ok(Some(championship))
+            }
+
+            None => Ok(None),
+        }
     }
 
     /// Retrieves all championships associated with a user ID.
@@ -263,23 +278,5 @@ impl ChampionshipRepository {
         };
 
         Ok(rows.len())
-    }
-
-    /// Converts a db row to a `Championship` instance and caches it.
-    ///
-    /// # Arguments
-    ///
-    /// * `row` - An optional row from the db.
-    ///
-    /// # Returns
-    ///
-    /// An optional `Championship` instance if the row is present.
-    // Todo - Separate setting the cache from the conversion or make it more explicit.
-    fn row_into_championship(&self, row: Option<&Row>) -> Option<Arc<Championship>> {
-        row.map(|r| {
-            let champ = Arc::new(Championship::from(r));
-            self.cache.championship.set(champ.clone());
-            champ
-        })
     }
 }

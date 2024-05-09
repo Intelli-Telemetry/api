@@ -60,7 +60,7 @@ impl TokenService {
     /// The token data including the claims if the token is valid.
     pub fn validate(&self, token: &str) -> AppResult<TokenData<TokenClaim>> {
         decode::<TokenClaim>(token, &self.decoding_key, &self.validation)
-            .map_err(|_| TokenError::TokenCreationError.into())
+            .map_err(|_| TokenError::InvalidToken.into())
     }
 
     /// Saves a reset password token to the cache.

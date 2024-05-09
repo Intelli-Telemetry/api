@@ -10,8 +10,8 @@ impl ToProtoMessage for BPacketSessionData {
     fn to_proto(&self) -> Option<Self::ProtoType> {
         let mut sum_rain_percentage = 0;
 
-        for weather in &self.weather_forecast_samples {
-            sum_rain_percentage += weather.rain_percentage as u32;
+        for sample in &self.weather_forecast_samples {
+            sum_rain_percentage += sample.rain_percentage as u32;
         }
 
         let rain_percentage = sum_rain_percentage
@@ -20,10 +20,10 @@ impl ToProtoMessage for BPacketSessionData {
 
         let mut marshall_zones = Vec::with_capacity(self.num_marshal_zones as usize);
 
-        for marshal_zone in &self.marshal_zones {
+        for zone in &self.marshal_zones {
             marshall_zones.push(MarshalZone {
-                zone_start: marshal_zone.zone_start,
-                zone_flag: marshal_zone.zone_flag as i32,
+                zone_start: zone.zone_start,
+                zone_flag: zone.zone_flag as i32,
             });
         }
 

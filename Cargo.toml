@@ -27,7 +27,6 @@ jsonwebtoken = "9"
 quick_cache = "0.5"
 postgres-derive = "0.4"
 deadpool-postgres = "0.13"
-zerocopy-derive = "0.8.0-alpha"
 tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", features = ["json"] }
@@ -38,7 +37,6 @@ serde = { version = "1", features = ["rc", "unstable"] }
 ntex = { version = "1", features = ["tokio", "openssl"] }
 garde = { version = "0.18", features = ["derive", "email"] }
 refinery = { version = "0.8", features = ["tokio-postgres"] }
-zerocopy = { version = "0.8.0-alpha", features = ["simd-nightly"] }
 postgres-types = { version = "0.2", features = ["with-chrono-0_4"] }
 async-compression = { version = "0.4", features = ["zstd", "tokio"] }
 tracing-subscriber = { version = "0.3", features = [

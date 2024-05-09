@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use ahash::AHashSet;
-use deadpool_postgres::tokio_postgres::Row;
 
 use crate::{
     cache::{EntityCache, ServiceCache},
@@ -30,12 +29,11 @@ impl UsedIds for &'static UserRepository {
             .prepare_cached(
                 r#"
                     SELECT id FROM users
-            "#,
+                "#,
             )
             .await?;
 
         let rows = conn.query(&user_ids_stmt, &[]).await?;
-
         let mut user_ids = AHashSet::with_capacity(rows.len());
 
         for row in rows {
@@ -88,7 +86,53 @@ impl UserRepository {
             conn.query_opt(&find_user_stmt, &[&id]).await?
         };
 
-        Ok(self.row_into_user(row.as_ref()))
+        match row {
+            Some(ref row) => {
+                let user = User::from_row(row);
+                self.cache.user.set(user.clone());
+                Ok(Some(user))
+            }
+
+            None => Ok(None),
+        }
+    }
+
+    /// Finds a user by their email address.
+    ///
+    /// # Arguments
+    /// - `email`: The email address of the user.
+    ///
+    /// # Returns
+    /// An `AppResult` containing the user if found, or `None`.
+    pub async fn find_by_email(&self, email: &str) -> AppResult<Option<Arc<User>>> {
+        if let Some(user) = self.cache.user.get_by_email(email) {
+            return Ok(Some(user));
+        };
+
+        let row = {
+            let conn = self.db.pg.get().await?;
+
+            let find_by_email_stmt = conn
+                .prepare_cached(
+                    r#"
+                        SELECT * FROM users
+                        WHERE email = $1
+                    "#,
+                )
+                .await?;
+
+            conn.query_opt(&find_by_email_stmt, &[&email]).await?
+        };
+
+        match row {
+            Some(ref row) => {
+                let user = User::from_row(row);
+                self.cache.user.set(user.clone());
+                Ok(Some(user))
+            }
+
+            None => Ok(None),
+        }
     }
 
     /// Checks if a user exists by their email.
@@ -149,57 +193,6 @@ impl UserRepository {
         }
 
         Ok(None)
-    }
-
-    /// Finds a user by their email address.
-    ///
-    /// # Arguments
-    /// - `email`: The email address of the user.
-    ///
-    /// # Returns
-    /// An `AppResult` containing the user if found, or `None`.
-    pub async fn find_by_email(&self, email: &str) -> AppResult<Option<Arc<User>>> {
-        if let Some(user) = self.cache.user.get_by_email(email) {
-            return Ok(Some(user));
-        };
-
-        let row = {
-            let conn = self.db.pg.get().await?;
-
-            let find_by_email_stmt = conn
-                .prepare_cached(
-                    r#"
-                        SELECT * FROM users
-                        WHERE email = $1
-                    "#,
-                )
-                .await?;
-
-            conn.query_opt(&find_by_email_stmt, &[&email]).await?
-        };
-
-        Ok(self.row_into_user(row.as_ref()))
-    }
-
-    /// Converts a db row into a `User` object.
-    ///
-    /// This private method attempts to convert a db row into a `User` struct.
-    /// If the row exists and the user is active, it caches the user information
-    /// and returns the user. If the user is not active, it returns an error.
-    ///
-    /// # Arguments
-    /// - `row`: An optional db row that may contain user data.
-    ///
-    /// # Returns
-    /// - `Some(User)` if the user is found and active.
-    /// - `None` if the row is `None`.
-    // Todo - Separate setting the cache from the conversion or make it more explicit.
-    fn row_into_user(&self, row: Option<&Row>) -> Option<Arc<User>> {
-        row.map(|r| {
-            let user = Arc::new(User::from(r));
-            self.cache.user.set(user.clone());
-            user
-        })
     }
 
     #[inline]
