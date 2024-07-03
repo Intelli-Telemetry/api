@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 lib-utils = { path = "../../libs/lib-utils/" }
+ids-generator = { path = "../../tools/ids-generator" }
