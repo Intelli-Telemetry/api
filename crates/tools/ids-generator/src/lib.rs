@@ -54,6 +54,33 @@ impl IdsGenerator {
 		generator
 	}
 
+	/// Returns the next available ID.
+	///
+	/// # Returns
+	///
+	/// The next available unique ID.
+	///
+	/// # Panics
+	///
+	/// Panics if no unique ID can be generated.
+	pub fn next(&self) -> i32 {
+		let mut ids = self.ids.lock();
+
+		match ids.pop() {
+			Some(id) => id,
+			None => {
+				self.refill(&mut ids);
+				ids.pop().unwrap_or_else(|| {
+					panic!("Failed to generate a unique ID: No more unique IDs available")
+				})
+			}
+		}
+	}
+
+	pub fn container_type(&self) -> ContainerType {
+		self.container.lock().container_type()
+	}
+
 	/// Refills the pool of available IDs.
 	///
 	/// # Arguments
@@ -88,33 +115,10 @@ impl IdsGenerator {
 			}
 		}
 	}
-
-	/// Returns the next available ID.
-	///
-	/// # Returns
-	///
-	/// The next available unique ID.
-	///
-	/// # Panics
-	///
-	/// Panics if no unique ID can be generated.
-	pub fn next(&self) -> i32 {
-		let mut ids = self.ids.lock();
-
-		match ids.pop() {
-			Some(id) => id,
-			None => {
-				self.refill(&mut ids);
-				ids.pop().unwrap_or_else(|| {
-					panic!("Failed to generate a unique ID: No more unique IDs available")
-				})
-			}
-		}
-	}
 }
 
 #[derive(Debug, PartialEq)]
-enum ContainerType {
+pub enum ContainerType {
 	HashSet,
 	BitSet,
 }
@@ -198,8 +202,7 @@ impl IdContainer {
 		}
 	}
 
-	#[allow(unused)]
-	pub fn get_container_type(&self) -> ContainerType {
+	pub fn container_type(&self) -> ContainerType {
 		match self {
 			IdContainer::HashSet(..) => ContainerType::HashSet,
 			IdContainer::BitSet(..) => ContainerType::BitSet,
