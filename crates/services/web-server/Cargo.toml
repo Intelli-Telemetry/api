@@ -1,0 +1,7 @@
+[package]
+name = "web-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lib-utils = { path = "../../libs/lib-utils/" }
