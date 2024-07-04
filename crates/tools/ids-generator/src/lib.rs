@@ -117,13 +117,13 @@ impl IdsGenerator {
 	}
 }
 
+/// Container Type
 #[derive(Debug, PartialEq)]
 pub enum ContainerType {
 	HashSet,
 	BitSet,
 }
 
-// Placeholder for IdContainer struct
 /// Container for managing used and available IDs.
 
 enum IdContainer {
